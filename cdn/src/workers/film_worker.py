@@ -1,5 +1,5 @@
-from cdn.src.service.minio_service import MinioService
-from cdn.src.service.video_converter_service import VideoConverterService
+from service.minio_service import MinioService
+from service.video_converter_service import VideoConverterService
 
 
 class FilmWorker:
@@ -15,9 +15,3 @@ class FilmWorker:
         """
         file_dir, filenames = self.video_converter_service.convert_to_hls(filename)
         self.minio_service.upload_files(file_dir, filenames)
-
-
-### TODO для отладки
-worker = FilmWorker()
-worker.load_new_film(filename="short_movie.mp4")
-### TODO для отладки
