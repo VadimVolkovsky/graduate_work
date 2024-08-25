@@ -7,7 +7,6 @@ from ffmpeg_streaming import Formats
 
 class VideoConverterService:
     def __init__(self):
-        # self.working_dir: str = f'{os.path.dirname(os.getcwd())}/media'
         self.working_dir: str = f'{pathlib.Path(__file__).parent.parent.absolute()}/media'
 
     def convert_to_hls(self, filename: str) -> tuple[str, list[str]]:
