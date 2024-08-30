@@ -1,0 +1,45 @@
+x-default-network: &net
+  network_mode: bridge
+
+services:
+  rabbit:
+    <<: *net
+    image: heidiks/rabbitmq-delayed-message-exchange:latest
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    expose:
+      - 5672
+    ports:
+        - 5672:5672
+        - 15672:15672
+#    networks:
+#      - cdn_network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    container_name: 'cdn_rabbit'
+
+  worker-app:
+    <<: *net
+    build:
+      dockerfile: ./workers/Dockerfile
+      context: .
+    restart: always
+    #    env_file:
+    #      - ./.env
+    expose:
+      - 8003
+    command: /bin/sh -c 'faststream run main:app'
+    depends_on:
+      rabbit:
+        condition: service_healthy
+#    networks:
+#      - cdn_network
+    container_name: 'cdn_worker'
+
+#networks:
+#  cdn_network:
+#    driver: bridge
