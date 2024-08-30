@@ -5,10 +5,12 @@ from faststream.rabbit import RabbitBroker, RabbitQueue, RabbitExchange
 from worker_video_preparation import MessageNewVideo, get_worker
 # from workers.src.worker_video_preparation import get_worker, MessageNewVideo
 
+# TODO сделать сеттинги с env
 broker = RabbitBroker(
     # f"amqp://{settings.rabbit_user}:{settings.rabbit_password}@{settings.rabbit_host}:{settings.rabbit_port}/")
-    f"amqp://guest:guest@localhost:5672/")
-### TODO пофиксить запуск в контейнерах (воркер не видит контейнер кролика)
+    # f"amqp://guest:guest@localhost:5672/")
+    host='cdn_rabbit',
+)
 
 app = FastStream(broker)
 queue_new_video = RabbitQueue("new_video")
