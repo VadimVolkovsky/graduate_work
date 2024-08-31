@@ -2,16 +2,9 @@ import os
 from functools import lru_cache
 
 import ffmpeg
-from pydantic import BaseModel
 
 from cdn.src.minio_service import MinioService
 # from minio_service import MinioService
-
-
-class MessageNewVideo(BaseModel):
-    """Схема сообщения в очереди"""
-    url_original_video: str
-    file_name: str
 
 
 class WorkerVideoPreparation:
