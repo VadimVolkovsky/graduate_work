@@ -22,8 +22,8 @@ services:
       dockerfile: ./workers/Dockerfile
       context: .
     restart: always
-    #    env_file:
-    #      - ./.env
+    env_file:
+      - ./.env
     expose:
       - 8003
     command: /bin/sh -c 'faststream run main:app'
