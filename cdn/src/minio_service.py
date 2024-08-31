@@ -10,8 +10,8 @@ class MinioService:
 
     def __init__(
             self,
-            bucket_name="volkovskiy-test-bucket-33",
-            media_dir='./media'
+            bucket_name="volkovskiy-test-bucket-33",  # TODO env
+            media_dir='./media'   # TODO env
     ):
         self.bucket_name = bucket_name
         self.media_dir = media_dir
@@ -20,6 +20,7 @@ class MinioService:
             access_key="Q3AM3UQ867SPQQA43P2F",
             secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
         )  # TODO заменить на локальный запуск Minio
+           # TODO env
 
     def upload_files(self, file_dir: str):
         """

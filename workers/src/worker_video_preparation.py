@@ -4,7 +4,6 @@ from functools import lru_cache
 import ffmpeg
 
 from cdn.src.minio_service import MinioService
-# from minio_service import MinioService
 
 
 class WorkerVideoPreparation:

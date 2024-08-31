@@ -3,16 +3,12 @@ from faststream import FastStream
 from faststream.rabbit import RabbitBroker, RabbitQueue, RabbitExchange
 
 from core.config import settings
-from worker_video_preparation import get_worker
 from schemas.message_schema import MessageNewVideo
+from worker_video_preparation import get_worker
 
-# from workers.src.worker_video_preparation import get_worker, MessageNewVideo
 
-# TODO сделать сеттинги с env
 broker = RabbitBroker(
     f"amqp://{settings.rabbit_user}:{settings.rabbit_password}@{settings.rabbit_host}:{settings.rabbit_port}/")
-    # f"amqp://guest:guest@localhost:5672/")
-    # host='cdn_rabbit',)
 
 
 app = FastStream(broker)
@@ -35,3 +31,6 @@ async def handle_message_from_queue(message: MessageNewVideo, worker=Depends(get
     worker.file_name = message.file_name  # берем из очереди название оригинального файла в минио
     worker.convert_video()
     await worker.upload_files_in_minio()
+    # TODO шаг update_db_info() - обновление записи в БД: ссылка на файлы m3u8 в Minio
+
+# TODO подключить алхимию для работы с БД
