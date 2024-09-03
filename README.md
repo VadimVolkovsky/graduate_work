@@ -1,27 +1,10 @@
 # Распределенное хранение файлов
 
-Для корректной работы модуля конвертирования в HLS, необходима библиотека ffmpeg
-https://ffmpeg.org/download.html
 
-Установка на линукс:
-```
-sudo apt install ffmpeg
-```
-
-Установка на Windows:
-```
-.... TODO
-```
-
-
-
-## Тестирование проекта:
+## Запуск проекта:
 
 ```
-pip install -r requirements.txt
+docker compose up
 ```
 
-Запуск конвертации и загрузки тестового фильма
-```
-python cdn/src/main.py
-```
+... TODO
