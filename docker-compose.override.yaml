@@ -35,6 +35,23 @@ services:
       - cdn_network
     container_name: 'cdn_worker'
 
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    env_file:
+      - ./.env
+    command: server --console-address ":9001" /data
+    networks:
+      - cdn_network
+    container_name: 'cdn_minio'
+
+volumes:
+  minio_storage:
+
 networks:
   cdn_network:
     driver: bridge
