@@ -6,7 +6,6 @@ from core.config import settings
 from schemas.message_schema import MessageNewVideo
 from worker_video_preparation import get_worker
 
-
 broker = RabbitBroker(
     f"amqp://{settings.rabbit_user}:{settings.rabbit_password}@{settings.rabbit_host}:{settings.rabbit_port}/")
 
@@ -31,6 +30,30 @@ async def handle_message_from_queue(message: MessageNewVideo, worker=Depends(get
     worker.file_name = message.file_name  # берем из очереди название оригинального файла в минио
     worker.convert_video()
     await worker.upload_files_in_minio()
-    # TODO шаг update_db_info() - обновление записи в БД: ссылка на файлы m3u8 в Minio
+    # TODO добавить шаг update_db_info() - выполняет обновление записи в БД: добавляет ссылку на файлы m3u8 в Minio
 
 # TODO подключить алхимию для работы с БД
+# TODO вынести креды кролика из компоуза в .env
+
+
+
+# ### TODO для отладки отправки сообщений
+# async def _send_test_message():
+#     print('публикуем сообщение после старта арр')
+#     filename = 'SampleVideo_1280x720_10mb.mp4'
+#     minio_service = MinioService()
+#     print(f'DEBUG: загружаем файл в минио')
+#     minio_service.upload_file(filename)
+#
+#     print(f'DEBUG: получаем presigned_url')
+#     url = minio_service.get_presigned_url(filename)
+#     message = MessageNewVideo(url_original_video=url, file_name=filename)
+#     print(f'DEBUG: публикуем месседж в очередь')
+#     await broker.publish(message, queue=queue_new_video, exchange=default_exchange)
+
+
+# ### TODO для отладки отправки сообщений
+# @app.after_startup
+# async def test_publish():
+#     await _send_test_message()
+#
