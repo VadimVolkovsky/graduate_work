@@ -18,8 +18,9 @@ default_exchange = RabbitExchange("default_exchange")
 
 async def send_message():
     print('отправляем сообщение в RabbitMQ')
-    # необходимо предварительно загрузить тестовое видео в Minio и вставить ниже presigned_url на него
-    url_original_video = 'https://play.min.io/volkovskiy-test-bucket-33/SampleVideo_1280x720_10mb.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=Q3AM3UQ867SPQQA43P2F%2F20240831%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240831T090728Z&X-Amz-Expires=43200&X-Amz-SignedHeaders=host&X-Amz-Signature=b6c2cf78e28f50877fa5d95f5e7101f30eb0e6b0a7874a752b110bd2de8da606'
+    # необходимо предварительно загрузить тестовое видео в Minio и вставить ниже presigned_url на него.
+    # заменить в ссылке хост на MINIO_HOST из .env
+    url_original_video = f'http://localhost:9000/graduate-work-bucket/SampleVideo_1280x720_10mb.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio_user%2F20240903%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240903T075851Z&X-Amz-Expires=43200&X-Amz-SignedHeaders=host&X-Amz-Signature=0384077017174306da6de235d6510c7e5f124e2f3c45dbe37242086011ceea96'
     file_name = 'SampleVideo_1280x720_10mb.mp4'  # тестовое видео хранится в /media
     message = MessageNewVideo(url_original_video=url_original_video, file_name=file_name)
     await broker.publish(message, queue=queue_new_video, exchange=default_exchange)
@@ -31,5 +32,5 @@ async def main():
     await asyncio.sleep(1)
 
 
-if "__main__" == __name__:
+if __name__ == '__main__':
     asyncio.run(main())
