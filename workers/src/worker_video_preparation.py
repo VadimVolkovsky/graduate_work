@@ -38,10 +38,11 @@ class WorkerVideoPreparation:
             hls_list_size=0
         )
 
-        print('Запускаем конвертацию...')
+        print(f'Запускаем конвертацию {self.file_name}...')
         ffmpeg.run(output_stream)
 
         self._local_file_path = converted_video_dir
+        print(f'Конвертация завершена {self.file_name}')
 
     async def upload_files_in_minio(self):
         """Загрузка сконвертированных файлов в Minio"""
