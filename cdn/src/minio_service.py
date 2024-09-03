@@ -4,23 +4,25 @@ from datetime import timedelta
 from minio import Minio
 from minio.error import S3Error
 
+from core.config import settings
+
 
 class MinioService:
     """Сервис для работы с Minio"""
 
     def __init__(
             self,
-            bucket_name="volkovskiy-test-bucket-33",  # TODO env
-            media_dir='./media'   # TODO env
+            bucket_name=settings.minio_bucket_name,
+            media_dir=settings.media_dir
     ):
         self.bucket_name = bucket_name
         self.media_dir = media_dir
         self.client = Minio(
-            "play.min.io",
-            access_key="Q3AM3UQ867SPQQA43P2F",
-            secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
-        )  # TODO заменить на локальный запуск Minio
-           # TODO env
+            endpoint=f"{settings.minio_host}:{settings.minio_port}",
+            access_key=settings.minio_root_user,
+            secret_key=settings.minio_root_password,
+            secure=settings.minio_secure
+        )
 
     def upload_files(self, file_dir: str):
         """
@@ -55,7 +57,7 @@ class MinioService:
         except S3Error as exc:
             print(f"Произошла ошибка {exc}")
 
-    def get_presigned_url(self, filename):
+    def get_presigned_url(self, filename) -> str:
         """
         Создание presigned_url на загруженный в Minio файл.
         По данному url можно скачать видеофайл из Minio.
@@ -64,6 +66,7 @@ class MinioService:
             self.bucket_name, filename, expires=timedelta(hours=12),
         )
         print(url)
+        return url
 
     def _check_bucket_exists(self):
         """
@@ -86,8 +89,8 @@ class MinioService:
 
 
 ### TODO для отладки - загрузка тестового видеофайла из папки /media в минио
-if __name__ == '__main__':
-    filename = 'SampleVideo_1280x720_10mb.mp4'
-    minio_service = MinioService()
-    minio_service.upload_file(filename)
-    minio_service.get_presigned_url(filename)
+# if __name__ == '__main__':
+#     filename = 'SampleVideo_1280x720_10mb.mp4'
+#     minio_service = MinioService()
+#     minio_service.upload_file(filename)
+#     minio_service.get_presigned_url(filename)
