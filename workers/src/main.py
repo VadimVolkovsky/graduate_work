@@ -3,6 +3,7 @@ from faststream import FastStream
 from faststream.rabbit import RabbitBroker, RabbitQueue, RabbitExchange
 
 from core.config import settings
+from cdn.src.minio_service import MinioService
 from schemas.message_schema import MessageNewVideo
 from worker_video_preparation import get_worker
 
@@ -34,26 +35,27 @@ async def handle_message_from_queue(message: MessageNewVideo, worker=Depends(get
 
 # TODO подключить алхимию для работы с БД
 # TODO вынести креды кролика из компоуза в .env
+# TODO складывать фильмы в минио по папкам
+# TODO сделать кастомную генерацию ссылки на m3u8 для сохранения в БД
 
 
 
-# ### TODO для отладки отправки сообщений
-# async def _send_test_message():
-#     print('публикуем сообщение после старта арр')
-#     filename = 'SampleVideo_1280x720_10mb.mp4'
-#     minio_service = MinioService()
-#     print(f'DEBUG: загружаем файл в минио')
-#     minio_service.upload_file(filename)
-#
-#     print(f'DEBUG: получаем presigned_url')
-#     url = minio_service.get_presigned_url(filename)
-#     message = MessageNewVideo(url_original_video=url, file_name=filename)
-#     print(f'DEBUG: публикуем месседж в очередь')
-#     await broker.publish(message, queue=queue_new_video, exchange=default_exchange)
+### TODO для отладки отправки сообщений
+async def _send_test_message():
+    filename = 'SampleVideo_1280x720_10mb.mp4'
+    minio_service = MinioService()
+    print(f'DEBUG: загружаем файл в минио')
+    minio_service.upload_file(filename)
+
+    print(f'DEBUG: получаем presigned_url')
+    url = minio_service.get_presigned_url(filename)
+    message = MessageNewVideo(url_original_video=url, file_name=filename)
+    print(f'DEBUG: публикуем месседж в очередь')
+    await broker.publish(message, queue=queue_new_video, exchange=default_exchange)
 
 
-# ### TODO для отладки отправки сообщений
-# @app.after_startup
-# async def test_publish():
-#     await _send_test_message()
-#
+### TODO для отладки отправки сообщений
+if settings.debug:
+    @app.after_startup
+    async def test_publish():
+        await _send_test_message()

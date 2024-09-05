@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     minio_secure: bool = False
     minio_bucket_name: str = 'graduate-work-bucket'
 
+    media_dir: str = 'media'
+
+    debug: bool = False
+
     class Config:
         # env_file = '.env'
         extra = 'ignore'
