@@ -14,7 +14,8 @@ class WorkerVideoPreparation:
     загружает подготовленные m3u8 файлы в Minio.
     """
 
-    def __init__(self, file_url: str = None, file_name: str = None):
+    def __init__(self, film_id: str = None, file_url: str = None, file_name: str = None):
+        self.film_id = film_id
         self.file_url = file_url
         self.file_name = file_name
         self._local_file_path: str | None = None
@@ -24,11 +25,10 @@ class WorkerVideoPreparation:
         """Конвертирует видео в m3u8 формат"""
         input_stream = ffmpeg.input(self.file_url)
         filename_without_format = self.file_name.split('.')[0]
-        converted_video_dir = f'{os.getcwd()}/media/{filename_without_format}'
+        converted_video_dir = f'{os.getcwd()}/media/{self.film_id}'
         print('Создаем директорию для конвертации фильма...')
         os.makedirs(converted_video_dir, exist_ok=True)
-        output_filename = f'{filename_without_format}.m3u8'
-        output_path_to_file = f'{converted_video_dir}/{output_filename}'
+        output_path_to_file = f'{converted_video_dir}/{filename_without_format}.m3u8'
         output_stream = ffmpeg.output(
             input_stream,
             output_path_to_file,
@@ -46,7 +46,8 @@ class WorkerVideoPreparation:
 
     async def upload_files_in_minio(self):
         """Загрузка сконвертированных файлов в Minio"""
-        self.minio_service.upload_files(self._local_file_path)
+        print(f'Загружаем файлы в {self._local_file_path}')
+        self.minio_service.upload_files(film_id=self.film_id, file_dir=self._local_file_path)
 
 
 @lru_cache()
