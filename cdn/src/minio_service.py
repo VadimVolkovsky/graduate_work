@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import timedelta
 
@@ -24,7 +25,7 @@ class MinioService:
             secure=settings.minio_secure
         )
 
-    def upload_files(self, file_dir: str):
+    def upload_files(self, film_id: str, file_dir: str):
         """
         Загружает в Minio все файлы из указанной директории.
         Подойдет для загрузки видеофайлов после конвертации в формат m3u8.
@@ -35,25 +36,30 @@ class MinioService:
             filenames = os.listdir(file_dir)
 
             for filename in filenames:
-                filepath = f"{file_dir}/{filename}"
+                remote_filepath = f"{film_id}/{filename}"  # путь до файла в корзине
+                local_filepath = f"{file_dir}/{filename}"  # путь до файла локально
                 print(f'Загрузка файла {filename}...')
-                result = self.client.fput_object(self.bucket_name, filename, filepath)
+                result = self.client.fput_object(self.bucket_name, object_name=remote_filepath, file_path=local_filepath)
                 print(f'{result.object_name} успешно загружен в корзину {result.bucket_name}')
         except S3Error as exc:
             print(f"Произошла ошибка {exc}")
 
-    def upload_file(self, filename: str):
+    def upload_file(self, film_id: str, filename: str) -> str:
         """
         Загрузка файла в Minio
         Файлы должны находится в директории self.media_dir - по умолчанию это папка /media
-        :param filename: пример 'short_video.mp4'
+        :param film_id: <'cc733c92-6853-45f6-8e49-bec741188ebb'>
+        :param filename: <'short_video.mp4'>
+        :return remote_filepath: <film_id>/<filename>
         """
-        filepath = f'{self.media_dir}/{filename}'
+        remote_filepath = f"{film_id}/{filename}"  # путь до файла в корзине
+        local_filepath = f'{self.media_dir}/{film_id}/{filename}'  # путь до файла локально
         try:
             self._check_bucket_exists()
             print(f'Загрузка файла {filename}...')
-            result = self.client.fput_object(self.bucket_name, filename, filepath)
+            result = self.client.fput_object(self.bucket_name, object_name=remote_filepath, file_path=local_filepath)
             print(f'{result.object_name} успешно загружен в корзину {result.bucket_name}')
+            return remote_filepath
         except S3Error as exc:
             print(f"Произошла ошибка {exc}")
 
@@ -67,6 +73,11 @@ class MinioService:
         )
         print(url)
         return url
+
+    def get_file_url(self, remote_filepath): # TODO доработать
+        file_url = f"http://minio:9001/api/v1/buckets/graduate-work-bucket/objects/download?prefix={remote_filepath}"
+        return file_url
+
 
     def _check_bucket_exists(self):
         """
@@ -88,9 +99,43 @@ class MinioService:
             print(obj.object_name)
 
 
+    def set_up_policy(self):
+        """расширение политики минио чтобы можно было скачивать файлы без авторизации"""
+        # Example anonymous read-write bucket policy.
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {"AWS": "*"},
+                    "Action": [
+                        "s3:GetBucketLocation",
+                        "s3:ListBucket",
+                        "s3:ListBucketMultipartUploads",
+                    ],
+                    "Resource": "arn:aws:s3:::graduate-work-bucket",
+                },
+                {
+                    "Effect": "Allow",
+                    "Principal": {"AWS": "*"},
+                    "Action": [
+                        "s3:GetObject",
+                        "s3:PutObject",
+                        "s3:DeleteObject",
+                        "s3:ListMultipartUploadParts",
+                        "s3:AbortMultipartUpload",
+                    ],
+                    "Resource": "arn:aws:s3:::graduate-work-bucket/*",
+                },
+            ],
+        }
+        self.client.set_bucket_policy("graduate-work-bucket", json.dumps(policy))
+
+
 ### TODO для отладки - загрузка тестового видеофайла из папки /media в минио
-# if __name__ == '__main__':
-#     filename = 'SampleVideo_1280x720_10mb.mp4'
-#     minio_service = MinioService()
-#     minio_service.upload_file(filename)
-#     minio_service.get_presigned_url(filename)
+if __name__ == '__main__':
+    filename = 'SampleVideo_1280x720_10mb.mp4'
+    minio_service = MinioService()
+    minio_service.upload_file(filename)
+    minio_service.get_presigned_url(filename)
+#     minio_service.set_up_policy()
