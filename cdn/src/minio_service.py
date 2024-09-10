@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import timedelta
 
 from minio import Minio
@@ -52,8 +53,8 @@ class MinioService:
         :param filename: <'short_video.mp4'>
         :return remote_filepath: <film_id>/<filename>
         """
-        remote_filepath = f"{film_id}/{filename}"  # путь до файла в корзине
         local_filepath = f'{self.media_dir}/{film_id}/{filename}'  # путь до файла локально
+        remote_filepath = f"{film_id}/{filename}"  # путь до файла в корзине
         try:
             self._check_bucket_exists()
             print(f'Загрузка файла {filename}...')
@@ -74,10 +75,9 @@ class MinioService:
         print(url)
         return url
 
-    def get_file_url(self, remote_filepath): # TODO доработать
+    def get_file_url(self, remote_filepath):  # TODO доработать
         file_url = f"http://minio:9001/api/v1/buckets/graduate-work-bucket/objects/download?prefix={remote_filepath}"
         return file_url
-
 
     def _check_bucket_exists(self):
         """
@@ -86,8 +86,11 @@ class MinioService:
         """
         found = self.client.bucket_exists(self.bucket_name)
         if not found:
+            print(f"Создание корзины {self.bucket_name}...")
             self.client.make_bucket(self.bucket_name)
+            # time.sleep(5)
             print(f"Создана корзина {self.bucket_name}")
+            self._set_up_bucket_policy()
         else:
             print(f"Корзина {self.bucket_name} уже существует")
 
@@ -98,38 +101,28 @@ class MinioService:
         for obj in objects:
             print(obj.object_name)
 
-
-    def set_up_policy(self):
-        """расширение политики минио чтобы можно было скачивать файлы без авторизации"""
-        # Example anonymous read-write bucket policy.
+    def _set_up_bucket_policy(self):
+        """Настройка политики бакета минио для доступа к файлам без авторизации"""
+        # Example anonymous read-only bucket policy.
         policy = {
             "Version": "2012-10-17",
             "Statement": [
                 {
                     "Effect": "Allow",
                     "Principal": {"AWS": "*"},
-                    "Action": [
-                        "s3:GetBucketLocation",
-                        "s3:ListBucket",
-                        "s3:ListBucketMultipartUploads",
-                    ],
-                    "Resource": "arn:aws:s3:::graduate-work-bucket",
+                    "Action": ["s3:GetBucketLocation", "s3:ListBucket"],
+                    "Resource": f"arn:aws:s3:::{self.bucket_name}",
                 },
                 {
                     "Effect": "Allow",
                     "Principal": {"AWS": "*"},
-                    "Action": [
-                        "s3:GetObject",
-                        "s3:PutObject",
-                        "s3:DeleteObject",
-                        "s3:ListMultipartUploadParts",
-                        "s3:AbortMultipartUpload",
-                    ],
-                    "Resource": "arn:aws:s3:::graduate-work-bucket/*",
+                    "Action": "s3:GetObject",
+                    "Resource": f"arn:aws:s3:::{self.bucket_name}/*",
                 },
             ],
         }
-        self.client.set_bucket_policy("graduate-work-bucket", json.dumps(policy))
+        self.client.set_bucket_policy(self.bucket_name, json.dumps(policy))
+        print('Применены настройки корзины: read-only bucket policy')
 
 
 ### TODO для отладки - загрузка тестового видеофайла из папки /media в минио
