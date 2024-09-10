@@ -46,7 +46,7 @@ async def _send_test_message():
     film_id = 'cc733c92-6853-45f6-8e49-bec741188ebb'
     filename = 'SampleVideo_1280x720_10mb.mp4'
     minio_service = MinioService()
-    print(f'DEBUG: загружаем файл в минио')
+    print(f'DEBUG: загружаем файл {filename} в минио')
     remote_filepath = minio_service.upload_file(film_id, filename)
     print(f'DEBUG: получаем presigned_url')
     url = minio_service.get_presigned_url(remote_filepath)
