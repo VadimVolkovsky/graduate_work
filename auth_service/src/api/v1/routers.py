@@ -15,4 +15,5 @@ main_router.include_router(
     auth_router,
     prefix='/auth',
     tags=['Auth'],
+    dependencies=[Depends(get_current_user_global)]
 )

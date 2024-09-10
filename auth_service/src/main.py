@@ -20,8 +20,6 @@ from core.logger import LOGGING
 from services import redis
 
 
-# tracer = trace.get_tracer(__name__)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,12 +29,6 @@ async def lifespan(app: FastAPI):
         # await add_default_roles()
         pass
 
-    # if app_settings.jaeger.enable_tracer:
-    #     configure_tracer(
-    #         app_settings.jaeger.jaeger_host,
-    #         app_settings.jaeger.jaeger_port,
-    #         app_settings.project_name,
-    #     )
 
     redis.redis = Redis(host=app_settings.redis_host, port=app_settings.redis_port)
     await FastAPILimiter.init(redis.redis)
@@ -67,7 +59,6 @@ app.add_middleware(
 
 app.include_router(main_router, prefix='/api/v1')
 add_pagination(app)
-
 
 
 

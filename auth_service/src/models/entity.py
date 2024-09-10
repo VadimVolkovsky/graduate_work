@@ -16,6 +16,7 @@ class Roles(Enum):
     user: str = 'user'
     superuser: str = 'superuser'
     admin: str = 'admin'
+    subscriber: str = 'subscriber'
 
 
 class SocialNetworksEnum(Enum):

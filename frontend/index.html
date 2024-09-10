@@ -29,13 +29,7 @@
         let video;
         let currentSegment = 0;
         const token = localStorage.getItem('token');
-        //const video = document.getElementById('video');
 
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // Функция для получения id видео из path
         function getVideoIdFromPath() {
             const pathSegments = window.location.pathname.split('/');
             return pathSegments[pathSegments.length - 1]; // Последний сегмент URL
@@ -57,16 +51,17 @@
                 });
                 console.log(response)
                 if (response.status === 401) {
-                    // Если токен невалиден или истек, перенаправляем на страницу логина
                     console.error('Failed 401');
                     redirectToLogin();
                 } else if (response.status === 422) {
-                    // Если токен невалиден или истек, перенаправляем на страницу логина
                     console.error('Failed 422');
                     redirectToLogin();
+                } else if (response.status === 403) {
+                    alert('Ошибка: Данный фильм вам недоступен.');
+                } else if (response.status === 404) {
+                    alert('Ошибка: Такого фильма не существует.');
                 }
 
-                //const data = await response.json();
                 if (response.ok) {
                     const data = await response.json();
                     console.log(data);
@@ -86,14 +81,11 @@
             }
         }
 
-        // Функция перенаправления на страницу логина
         function redirectToLogin() {
             const currentUrl = window.location.href;
             window.location.href = `/login.html?redirect=${encodeURIComponent(currentUrl)}`;
         }
 
-
-        // Функция для загрузки и воспроизведения первого сегмента .ts, затем остальных
         async function loadAndPlayM3U8(url) {
             video = document.getElementById('video');
 
@@ -108,42 +100,26 @@
                         xhr.setRequestHeader('Authorization', `Bearer ${token}`);
                     },
                 });
-                console.log(hls)
 
-                // Обработчик для установки кастомных заголовков перед загрузкой сегментов или ключей
-                //hls.on(Hls.Events.FRAG_LOADING, function (event, data) {
-                //    const xhrSetup = hls.config.xhrSetup;
-                //    hls.config.xhrSetup = function (xhr, url) {
-                //        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-                //        if (xhrSetup) {
-                //            xhrSetup(xhr, url);
-                //        }
-                //    };
-                //});
-                console.log(token)
-                // Подключаем плейлист к плееру
                 hls.loadSource(url);
                 hls.attachMedia(video);
 
                 hls.on(Hls.Events.MANIFEST_PARSED, function () {
                     console.log('MANIFEST_PARSED');
-                    hls.startLoad();  // Начинаем загрузку первого сегмента
+                    hls.startLoad();
                 });
 
                 // Событие после загрузки каждого сегмента
                 hls.on(Hls.Events.FRAG_LOADED, function (event, data) {
                     console.log(`Segment ${data.frag.sn} loaded`);
-                    currentSegment = data.frag.sn;  // Обновляем текущий сегмент
+                    currentSegment = data.frag.sn;
 
-                    // После загрузки сегмента начинаем его воспроизведение
                     video.play();
                 });
 
-                // Событие завершения воспроизведения текущего сегмента
                 video.addEventListener('ended', function () {
                     console.log('Segment ended, loading next segment...');
 
-                    // Загружаем следующий сегмент
                     hls.startLoad(currentSegment + 1);
                 });
 
@@ -160,10 +136,8 @@
         }
 
 
-
-        // Функция для воспроизведения видео
         async function playVideo() {
-            const videoId = getVideoIdFromPath(); // Получаем id видео из path
+            const videoId = getVideoIdFromPath();
 
             if (videoId) {
                 const videoSrc = await fetchM3U8Url(videoId);
@@ -178,7 +152,6 @@
             }
         }
 
-        // Запуск воспроизведения при загрузке страницы
         window.onload = playVideo;
     </script>
 </body>

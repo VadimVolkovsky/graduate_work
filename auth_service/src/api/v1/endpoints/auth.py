@@ -1,15 +1,11 @@
 import datetime
-import secrets
 from http import HTTPStatus
-from asyncio import sleep
-from typing import Annotated, Union
-from fastapi.responses import JSONResponse
 from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from authlib.integrations.base_client.errors import OAuthError
 from core.schemas.entity import (UserInDB, AdminInDB, UserCreate, UserLogin, JWTResponse, UserUpdate,
                                  UserLoginHistoryInDB)
-from fastapi import APIRouter, Depends, HTTPException, Path, Header, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi_limiter.depends import RateLimiter
 from fastapi_pagination import Page, paginate
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +17,10 @@ from helperes.google_auth import oauth
 from models.entity import SocialNetworksEnum
 from services import redis
 from services.user_service import get_user_service, UserService
+
+from helperes.auth import roles_required
+from helperes.auth_request import AuthRequest
+from models.entity import Roles
 
 router = APIRouter()
 auth_dep = AuthJWTBearer()
@@ -127,34 +127,21 @@ async def login_admin(
 
 
 @router.get('/check_film_access/', status_code=HTTPStatus.OK)
+@roles_required(roles_list=[Roles.subscriber.value, Roles.superuser.value])
 async def check_film_access(
-        request: Request,
-        user_service: UserService = Depends(get_user_service),
-        #film_id: str = Path(description="ID фильма"),
+        request: AuthRequest,
         authorize: AuthJWT = Depends(auth_dep),
-        #x_token: Annotated[Union[list[str], None], Header()] = None
 ):
-    """Эндпоинт разлогинивания пользователя путем добавления его refresh и access токенов в блэк-лист Redis"""
-    # {film_id}/
-    #if not request.headers.get("access-control-request-method"):
+    """Эндпоинт проверки доступности пользователю фильма"""
     await authorize.jwt_required()
-    print('auuu')
-
-
     raw_jwt = await authorize.get_raw_jwt()
 
     token_expire_date = raw_jwt["exp"]
     time_now = datetime.datetime.utcnow().timestamp()
-    # now = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
-    # time_now = now.timestamp()
 
     if time_now >= token_expire_date:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Token expired")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-    # email = raw_jwt['sub']
-    # user = await user_service.get_user_by_email(email, session)
-    # return {'email': user.email, 'role': user.role.name}
-    #return JSONResponse(content={"m3u8_url": 'qwe'})#{"access": True}
 
 
 @router.post('/check_token', status_code=HTTPStatus.OK, dependencies=[Depends(RateLimiter(times=2, seconds=5))], )
