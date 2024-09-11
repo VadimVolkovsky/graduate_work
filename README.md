@@ -20,3 +20,9 @@ DEBUG=True
 ```
 
 ... TODO
+
+
+Схема архитектуры в drawio
+```
+https://drive.google.com/file/d/11F-j3tX1yWf6DiSiiv9EIs77r701MYRW/view?usp=sharing
+```
