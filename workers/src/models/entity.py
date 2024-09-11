@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine, Column, String, UUID, DateTime
 from sqlalchemy.orm import declarative_base
+
 from workers.src.core.config import settings
+
 # from core.config import settings
 
 Base = declarative_base()
