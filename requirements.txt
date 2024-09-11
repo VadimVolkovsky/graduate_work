@@ -1,6 +1,6 @@
 minio~=7.2.8
 ffmpeg-python==0.2.0
-kafka-python-ng==2.2.2
+#kafka-python-ng==2.2.2
 faststream[rabbit]==0.5.19
 pydantic~=2.8.2
 pydantic-settings==2.2.1

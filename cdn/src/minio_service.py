@@ -94,12 +94,13 @@ class MinioService:
         else:
             print(f"Корзина {self.bucket_name} уже существует")
 
-    def get_list_of_all_files(self):
+    def get_list_of_all_files(self, prefix):
         """Возвращает список всех файлов в корзине"""
-        objects = self.client.list_objects(self.bucket_name)
-        print(f'Список файлов в корзине {self.bucket_name}:')
-        for obj in objects:
-            print(obj.object_name)
+        objects = self.client.list_objects(self.bucket_name, prefix=f"{prefix}/")
+        # print(f'Список файлов в корзине {self.bucket_name}:')
+        # for obj in objects:
+        #     print(obj.object_name)
+        return objects
 
     def _set_up_bucket_policy(self):
         """Настройка политики бакета минио для доступа к файлам без авторизации"""

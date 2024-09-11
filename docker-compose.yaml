@@ -1,3 +1,7 @@
+include:
+  - auth_service/docker-compose.yaml
+
+version: '3.9'
 services:
   rabbit:
     image: heidiks/rabbitmq-delayed-message-exchange:latest
@@ -48,8 +52,69 @@ services:
       - cdn_network
     container_name: 'cdn_minio'
 
+  admin_panel:
+    build:
+      context: ./admin_panel/src
+      dockerfile: Dockerfile
+    container_name: cdn_admin_panel
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    expose:
+      - "8001"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - cdn_network
+    volumes:
+      - ./admin_panel/src:/app
+      - static_value:/app/static/
+      - media_value:/app/media/
+#    environment:
+#      - CELERY_BROKER_URL=redis://redis:6379/0
+
+  nginx:
+    image: nginx:latest
+    container_name: cdn_nginx
+    volumes:
+      - ./admin_panel/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./admin_panel/nginx/configs:/etc/nginx/conf.d:ro
+#      - ./admin_panel/nginx/data:/data/:ro
+      - static_value:/data/static
+      - media_value:/data/media
+    depends_on:
+      - admin_panel
+      - minio
+    ports:
+      - "8001:80"
+    networks:
+      - cdn_network
+
+  postgres:
+    image: postgres:16
+    container_name: cdn_postgres
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5432" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_vol:/var/lib/postgresql/data/
+    networks:
+      - cdn_network
+
 volumes:
   minio_storage:
+  static_value:
+  media_value:
+  postgres_vol:
 
 networks:
   cdn_network:
