@@ -75,9 +75,9 @@ class MinioService:
         print(url)
         return url
 
-    def get_file_url(self, remote_filepath):  # TODO доработать
-        file_url = f"http://minio:9001/api/v1/buckets/graduate-work-bucket/objects/download?prefix={remote_filepath}"
-        return file_url
+    # def get_file_url(self, remote_filepath):  # TODO доработать
+    #     file_url = f"http://minio:9001/api/v1/buckets/graduate-work-bucket/objects/download?prefix={remote_filepath}"
+    #     return file_url
 
     def _check_bucket_exists(self):
         """
@@ -88,7 +88,6 @@ class MinioService:
         if not found:
             print(f"Создание корзины {self.bucket_name}...")
             self.client.make_bucket(self.bucket_name)
-            # time.sleep(5)
             print(f"Создана корзина {self.bucket_name}")
             self._set_up_bucket_policy()
         else:
@@ -97,9 +96,6 @@ class MinioService:
     def get_list_of_all_files(self, prefix):
         """Возвращает список всех файлов в корзине"""
         objects = self.client.list_objects(self.bucket_name, prefix=f"{prefix}/")
-        # print(f'Список файлов в корзине {self.bucket_name}:')
-        # for obj in objects:
-        #     print(obj.object_name)
         return objects
 
     def _set_up_bucket_policy(self):
