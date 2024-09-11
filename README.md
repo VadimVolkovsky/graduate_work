@@ -1,5 +1,7 @@
 # Распределенное хранение файлов
 
+Репозиторий проекта
+https://github.com/VadimVolkovsky/graduate_work
 
 ## Запуск проекта:
 
