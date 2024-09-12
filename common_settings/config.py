@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     media_dir: str = 'media'
 
-    debug: bool = False
+    debug_queue_message: bool = False
 
     class Config:
         # env_file = '.env'
@@ -31,3 +31,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

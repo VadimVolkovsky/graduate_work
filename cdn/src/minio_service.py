@@ -5,8 +5,8 @@ from datetime import timedelta
 from minio import Minio
 from minio.error import S3Error
 
+from common_settings.config import settings
 from common_settings.logger import logger
-from core.config import settings
 
 
 class MinioService:

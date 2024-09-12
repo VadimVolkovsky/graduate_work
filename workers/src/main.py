@@ -4,7 +4,7 @@ from faststream.rabbit import RabbitBroker, RabbitQueue, RabbitExchange
 
 from cdn.src.minio_service import MinioService
 from common_settings.logger import logger
-from core.config import settings
+from common_settings.config import settings
 from schemas.message_schema import MessageNewVideo
 from worker_video_preparation import get_worker
 
@@ -50,7 +50,7 @@ async def _send_test_message():
 
 
 ### TODO для отладки отправки сообщений - нужно включить в settings debug=True
-if settings.debug:
+if settings.debug_queue_message:
     @app.after_startup
     async def test_publish():
         await _send_test_message()
