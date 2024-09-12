@@ -12,7 +12,7 @@ broker = RabbitBroker(
 
 
 app = FastStream(broker)
-queue_new_video = RabbitQueue("new_video")
+queue_new_video = RabbitQueue("new_video", durable=True)
 default_exchange = RabbitExchange("default_exchange")
 
 
