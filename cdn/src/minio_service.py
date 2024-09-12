@@ -75,7 +75,6 @@ class MinioService:
         logger.info(url)
         return url
 
-
     def _check_bucket_exists(self):
         """
         Метод проверяет существование необходимой корзины в Minio и
@@ -86,7 +85,7 @@ class MinioService:
             logger.info(f"Создание корзины {self.bucket_name}...")
             self.client.make_bucket(self.bucket_name)
             logger.info(f"Создана корзина {self.bucket_name}")
-            self._set_up_bucket_policy()
+            self._set_up_public_bucket_policy()
         else:
             logger.info(f"Корзина {self.bucket_name} уже существует")
 
@@ -95,34 +94,35 @@ class MinioService:
         objects = self.client.list_objects(self.bucket_name, prefix=f"{prefix}/")
         return objects
 
-    def _set_up_bucket_policy(self):
-        """Настройка политики бакета минио для доступа к файлам без авторизации"""
-        # Example anonymous read-only bucket policy.
+    def _set_up_public_bucket_policy(self):
+        """Настройка политики бакета Minio"""
+        # Public bucket policy
         policy = {
             "Version": "2012-10-17",
             "Statement": [
                 {
                     "Effect": "Allow",
-                    "Principal": {"AWS": "*"},
-                    "Action": ["s3:GetBucketLocation", "s3:ListBucket"],
-                    "Resource": f"arn:aws:s3:::{self.bucket_name}",
+                    "Principal": {"AWS": ["*"]},
+                    "Action": ["s3:GetBucketLocation", "s3:ListBucket", "s3:ListBucketMultipartUploads"],
+                    "Resource": [f"arn:aws:s3:::{self.bucket_name}"]
                 },
                 {
                     "Effect": "Allow",
-                    "Principal": {"AWS": "*"},
-                    "Action": "s3:GetObject",
-                    "Resource": f"arn:aws:s3:::{self.bucket_name}/*",
-                },
-            ],
+                    "Principal": {"AWS": ["*"]},
+                    "Action": ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:GetObject",
+                               "s3:ListMultipartUploadParts", "s3:PutObject"],
+                    "Resource": [f"arn:aws:s3:::{self.bucket_name}/*"]
+                }
+            ]
         }
         self.client.set_bucket_policy(self.bucket_name, json.dumps(policy))
-        logger.info('Применены настройки корзины: read-only bucket policy')
+        logger.info('Применены настройки корзины: Public policy')
 
 
 # ### TODO для отладки - загрузка тестового видеофайла из папки /media в минио
 # if __name__ == '__main__':
-#     filename = 'SampleVideo_1280x720_10mb.mp4'
-#     minio_service = MinioService()
-#     minio_service.upload_file(filename)
-#     minio_service.get_presigned_url(filename)
-# #     minio_service.set_up_policy()
+    # filename = 'SampleVideo_1280x720_10mb.mp4'
+    # minio_service = MinioService()
+    # minio_service.upload_file(filename)
+    # minio_service.get_presigned_url(filename)
+    # minio_service._set_up_bucket_policy()
