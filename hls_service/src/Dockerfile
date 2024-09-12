@@ -11,6 +11,7 @@ ENV PYTHONUNBUFFERED 1
 
 COPY ./hls_service/requirements.txt requirements.txt
 COPY ./hls_service/requirements-prod.txt requirements-prod.txt
+COPY ../common_settings/ ./common_settings
 
 RUN  pip install --upgrade pip && pip install -r requirements.txt -r requirements-prod.txt
 
