@@ -3,7 +3,7 @@ import asyncio
 from faststream import FastStream
 from faststream.rabbit import RabbitBroker, RabbitQueue, RabbitExchange
 
-from core.config import settings
+from common_settings.config import settings
 from schemas.message_schema import MessageNewVideo
 
 ### TODO данный файл используется для отладки отправки сообщений в очередь

@@ -6,6 +6,7 @@ from functools import lru_cache
 import ffmpeg
 
 from cdn.src.minio_service import MinioService
+from common_settings.logger import logger
 
 
 class WorkerVideoPreparation:
@@ -25,13 +26,12 @@ class WorkerVideoPreparation:
 
     def convert_video(self):
         """Конвертирует видео в m3u8 формат и сохраняет в временную директорию."""
-        print(f'{self.film_id} | {self.file_url} | {self.file_name}')
         self._local_file_path = tempfile.mkdtemp()
-        print(f'Создана временная директория для конвертации: {self._local_file_path}')
+
+        logger.info(f'Создана временная директория для конвертации: {self._local_file_path}')
+
         filename_without_format = self.file_name.split('/')[-1].split('.')[0]
         output_path_to_file = f'{self._local_file_path}/{filename_without_format}.m3u8'
-
-        print(f'output_path_to_file = {output_path_to_file}')
 
         input_stream = ffmpeg.input(self.file_url)
         output_stream = ffmpeg.output(
@@ -43,19 +43,19 @@ class WorkerVideoPreparation:
             hls_list_size=0
         )
 
-        print(f'Запускаем конвертацию {self.file_name}...')
+        logger.info(f'Запускаем конвертацию {self.file_name}...')
         ffmpeg.run(output_stream)
-        print(f'Конвертация завершена {self.file_name}. Файлы сохранены во временной директории {self._local_file_path}')
+        logger.info(f'Конвертация завершена {self.file_name}. Файлы сохранены во временной директории {self._local_file_path}')
 
     async def upload_files_in_minio(self):
         """Загрузка сконвертированных файлов в Minio из временной директории"""
-        print(f'Загружаем файлы из временной директории {self._local_file_path} в Minio')
+        logger.info(f'Загружаем файлы из временной директории {self._local_file_path} в Minio')
 
         self.minio_service.upload_files(film_id=self.film_id, file_dir=self._local_file_path)
 
-        print(f'Удаление временных файлов...')
+        logger.info(f'Удаление временных файлов...')
         shutil.rmtree(self._local_file_path, ignore_errors=True)
-        print(f'Временные файлы удалены.')
+        logger.info(f'Временные файлы удалены.')
 
 @lru_cache()
 def get_worker() -> WorkerVideoPreparation:

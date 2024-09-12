@@ -16,8 +16,7 @@ RUN apt-get install ffmpeg libsm6 libxext6 -y
 
 COPY ../workers/src /app/
 COPY ../cdn/src/ /app/cdn/src/
+COPY ../common_settings/ /app/common_settings/
 
-# DEBUG only - перенос тестового видеофайла в контейнер
-#COPY ../cdn/src/media /app/media/
 
 WORKDIR app

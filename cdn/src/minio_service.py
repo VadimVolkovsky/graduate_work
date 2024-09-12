@@ -1,12 +1,12 @@
 import json
 import os
-import time
 from datetime import timedelta
 
 from minio import Minio
 from minio.error import S3Error
 
-from core.config import settings
+from common_settings.config import settings
+from common_settings.logger import logger
 
 
 class MinioService:
@@ -39,11 +39,11 @@ class MinioService:
             for filename in filenames:
                 remote_filepath = f"{film_id}/{filename}"  # путь до файла в корзине
                 local_filepath = f"{file_dir}/{filename}"  # путь до файла локально
-                print(f'Загрузка файла {filename}...')
+                logger.info(f'Загрузка файла {filename}...')
                 result = self.client.fput_object(self.bucket_name, object_name=remote_filepath, file_path=local_filepath)
-                print(f'{result.object_name} успешно загружен в корзину {result.bucket_name}')
+                logger.info(f'{result.object_name} успешно загружен в корзину {result.bucket_name}')
         except S3Error as exc:
-            print(f"Произошла ошибка {exc}")
+            logger.error(f"Произошла ошибка {exc}")
 
     def upload_file(self, film_id: str, filename: str) -> str:
         """
@@ -57,12 +57,12 @@ class MinioService:
         remote_filepath = f"{film_id}/{filename}"  # путь до файла в корзине
         try:
             self._check_bucket_exists()
-            print(f'Загрузка файла {filename}...')
+            logger.info(f'Загрузка файла {filename}...')
             result = self.client.fput_object(self.bucket_name, object_name=remote_filepath, file_path=local_filepath)
-            print(f'{result.object_name} успешно загружен в корзину {result.bucket_name}')
+            logger.info(f'{result.object_name} успешно загружен в корзину {result.bucket_name}')
             return remote_filepath
         except S3Error as exc:
-            print(f"Произошла ошибка {exc}")
+            logger.error(f"Произошла ошибка {exc}")
 
     def get_presigned_url(self, filename) -> str:
         """
@@ -72,12 +72,8 @@ class MinioService:
         url = self.client.presigned_get_object(
             self.bucket_name, filename, expires=timedelta(hours=12),
         )
-        print(url)
+        logger.info(url)
         return url
-
-    def get_file_url(self, remote_filepath):  # TODO доработать
-        file_url = f"http://minio:9001/api/v1/buckets/graduate-work-bucket/objects/download?prefix={remote_filepath}"
-        return file_url
 
     def _check_bucket_exists(self):
         """
@@ -86,49 +82,47 @@ class MinioService:
         """
         found = self.client.bucket_exists(self.bucket_name)
         if not found:
-            print(f"Создание корзины {self.bucket_name}...")
+            logger.info(f"Создание корзины {self.bucket_name}...")
             self.client.make_bucket(self.bucket_name)
-            # time.sleep(5)
-            print(f"Создана корзина {self.bucket_name}")
-            self._set_up_bucket_policy()
+            logger.info(f"Создана корзина {self.bucket_name}")
+            self._set_up_public_bucket_policy()
         else:
-            print(f"Корзина {self.bucket_name} уже существует")
+            logger.info(f"Корзина {self.bucket_name} уже существует")
 
-    def get_list_of_all_files(self):
+    def get_list_of_all_files(self, prefix):
         """Возвращает список всех файлов в корзине"""
-        objects = self.client.list_objects(self.bucket_name)
-        print(f'Список файлов в корзине {self.bucket_name}:')
-        for obj in objects:
-            print(obj.object_name)
+        objects = self.client.list_objects(self.bucket_name, prefix=f"{prefix}/")
+        return objects
 
-    def _set_up_bucket_policy(self):
-        """Настройка политики бакета минио для доступа к файлам без авторизации"""
-        # Example anonymous read-only bucket policy.
+    def _set_up_public_bucket_policy(self):
+        """Настройка политики бакета Minio"""
+        # Public bucket policy
         policy = {
             "Version": "2012-10-17",
             "Statement": [
                 {
                     "Effect": "Allow",
-                    "Principal": {"AWS": "*"},
-                    "Action": ["s3:GetBucketLocation", "s3:ListBucket"],
-                    "Resource": f"arn:aws:s3:::{self.bucket_name}",
+                    "Principal": {"AWS": ["*"]},
+                    "Action": ["s3:GetBucketLocation", "s3:ListBucket", "s3:ListBucketMultipartUploads"],
+                    "Resource": [f"arn:aws:s3:::{self.bucket_name}"]
                 },
                 {
                     "Effect": "Allow",
-                    "Principal": {"AWS": "*"},
-                    "Action": "s3:GetObject",
-                    "Resource": f"arn:aws:s3:::{self.bucket_name}/*",
-                },
-            ],
+                    "Principal": {"AWS": ["*"]},
+                    "Action": ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:GetObject",
+                               "s3:ListMultipartUploadParts", "s3:PutObject"],
+                    "Resource": [f"arn:aws:s3:::{self.bucket_name}/*"]
+                }
+            ]
         }
         self.client.set_bucket_policy(self.bucket_name, json.dumps(policy))
-        print('Применены настройки корзины: read-only bucket policy')
+        logger.info('Применены настройки корзины: Public policy')
 
 
-### TODO для отладки - загрузка тестового видеофайла из папки /media в минио
-if __name__ == '__main__':
-    filename = 'SampleVideo_1280x720_10mb.mp4'
-    minio_service = MinioService()
-    minio_service.upload_file(filename)
-    minio_service.get_presigned_url(filename)
-#     minio_service.set_up_policy()
+# ### TODO для отладки - загрузка тестового видеофайла из папки /media в минио
+# if __name__ == '__main__':
+    # filename = 'SampleVideo_1280x720_10mb.mp4'
+    # minio_service = MinioService()
+    # minio_service.upload_file(filename)
+    # minio_service.get_presigned_url(filename)
+    # minio_service._set_up_bucket_policy()

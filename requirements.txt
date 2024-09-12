@@ -1,6 +1,12 @@
 minio~=7.2.8
 ffmpeg-python==0.2.0
-kafka-python-ng==2.2.2
 faststream[rabbit]==0.5.19
 pydantic~=2.8.2
 pydantic-settings==2.2.1
+
+SQLAlchemy==2.0.34
+python-dotenv~=1.0.1
+urllib3~=2.2.2
+typer~=0.12.5
+multidict~=6.0.5
+psycopg2==2.9.9

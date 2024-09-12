@@ -1,3 +1,5 @@
+/media
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -23,6 +25,3 @@ venv.bak/
 # IDEs
 .idea/
 .vscode
-
-/admin_panel/src/data
-/media

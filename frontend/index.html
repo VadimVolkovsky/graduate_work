@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M3U8 Player</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+        }
+        video {
+            width: 80%;
+            height: auto;
+            max-width: 100%;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" controls></video>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        let hls;
+        let video;
+        let currentSegment = 0;
+        const token = localStorage.getItem('token');
+
+        function getVideoIdFromPath() {
+            const pathSegments = window.location.pathname.split('/');
+            return pathSegments[pathSegments.length - 1]; // Последний сегмент URL
+        }
+
+        async function fetchM3U8Url(videoId) {
+            //const token = localStorage.getItem('token');
+            if (!token) {
+                redirectToLogin();
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:80/hls/api/v1/films/${videoId}/playlist`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                console.log(response)
+                if (response.status === 401) {
+                    console.error('Failed 401');
+                    redirectToLogin();
+                } else if (response.status === 422) {
+                    console.error('Failed 422');
+                    redirectToLogin();
+                } else if (response.status === 403) {
+                    alert('Ошибка: Данный фильм вам недоступен.');
+                } else if (response.status === 404) {
+                    alert('Ошибка: Такого фильма не существует.');
+                }
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    return data.m3u8_url;
+                } else {
+                    console.error('Failed to fetch M3U8 URL');
+                }
+            } catch (error) {
+                console.error('Error fetching M3U8 URL:', error);
+                if (error.response) {
+                    if (error.response.status === 401) {
+                        redirectToLogin();
+                    }
+                }
+                console.log(error.response)
+                //redirectToLogin();
+            }
+        }
+
+        function redirectToLogin() {
+            const currentUrl = window.location.href;
+            window.location.href = `/login.html?redirect=${encodeURIComponent(currentUrl)}`;
+        }
+
+        async function loadAndPlayM3U8(url) {
+            video = document.getElementById('video');
+
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    autoStartLoad: false,  // Останавливаем автоматическую загрузку сегментов
+                    maxBufferLength: 1,    // Минимальное количество сегментов в буфере
+                    maxMaxBufferLength: 1,  // Останавливаем загрузку после одного сегмента
+
+                    xhrSetup: function (xhr, url) {
+                        xhr.setRequestHeader('Cache-Control', 'no-cache');
+                        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+                    },
+                });
+
+                hls.loadSource(url);
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    console.log('MANIFEST_PARSED');
+                    hls.startLoad();
+                });
+
+                // Событие после загрузки каждого сегмента
+                hls.on(Hls.Events.FRAG_LOADED, function (event, data) {
+                    console.log(`Segment ${data.frag.sn} loaded`);
+                    currentSegment = data.frag.sn;
+
+                    video.play();
+                });
+
+                video.addEventListener('ended', function () {
+                    console.log('Segment ended, loading next segment...');
+
+                    hls.startLoad(currentSegment + 1);
+                });
+
+                hls.on(Hls.Events.ERROR, function (event, data) {
+                    if (data.details === 'manifestLoadError') {
+                        alert('Ошибка: Доступ запрещён.');
+                    } else if (data.response && data.response.code === 401) {
+                        alert('Ошибка: Доступ запрещён.');
+                    } else {
+                        console.log('Ошибка при загрузке:', data);
+                    }
+                });
+            }
+        }
+
+
+        async function playVideo() {
+            const videoId = getVideoIdFromPath();
+
+            if (videoId) {
+                const videoSrc = await fetchM3U8Url(videoId);
+
+                if (videoSrc) {
+                    loadAndPlayM3U8(videoSrc);
+                } else {
+                console.error('Не передан плэйлист');
+            }
+            } else {
+                console.error('Не передан id видео в пути URL');
+            }
+        }
+
+        window.onload = playVideo;
+    </script>
+</body>
+</html>
