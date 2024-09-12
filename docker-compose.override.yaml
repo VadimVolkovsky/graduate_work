@@ -49,26 +49,22 @@ services:
       - cdn_network
     container_name: 'cdn_minio'
 
-  postgres:
-    ports:
-      - "5432:5432"
-
-  pgadmin:
-    container_name: 'cdn_pgadmin4'
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
-    ports:
-      - "5050:80"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - cdn_network
+#  pgadmin:
+#    container_name: 'cdn_pgadmin4'
+#    image: dpage/pgadmin4
+#    restart: always
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+#      PGADMIN_DEFAULT_PASSWORD: root
+#    ports:
+#      - "5050:80"
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    volumes:
+#      - pgadmin_data:/var/lib/pgadmin
+#    networks:
+#      - cdn_network
 
   nginx-backend:
     ports:
@@ -82,7 +78,13 @@ services:
     ports:
       - "8002:8002"
 
+  nginx:
+    ports:
+      - "8001:81"
 
+  postgres:
+    ports:
+      - "5433:5433"
 volumes:
   minio_storage:
   pgadmin_data:
