@@ -4,6 +4,7 @@ from functools import lru_cache
 import ffmpeg
 
 from cdn.src.minio_service import MinioService
+from common_settings.logger import logger
 
 
 class WorkerVideoPreparation:
@@ -26,7 +27,7 @@ class WorkerVideoPreparation:
         input_stream = ffmpeg.input(self.file_url)
         filename_without_format = self.file_name.split('.')[0]
         converted_video_dir = f'{os.getcwd()}/media/{self.film_id}'
-        print('Создаем директорию для конвертации фильма...')
+        logger.info('Создаем директорию для конвертации фильма...')
         os.makedirs(converted_video_dir, exist_ok=True)
         output_path_to_file = f'{converted_video_dir}/{filename_without_format}.m3u8'
         output_stream = ffmpeg.output(
@@ -38,15 +39,15 @@ class WorkerVideoPreparation:
             hls_list_size=0
         )
 
-        print(f'Запускаем конвертацию {self.file_name}...')
+        logger.info(f'Запускаем конвертацию {self.file_name}...')
         ffmpeg.run(output_stream)
 
         self._local_file_path = converted_video_dir
-        print(f'Конвертация завершена {self.file_name}')
+        logger.info(f'Конвертация завершена {self.file_name}')
 
     async def upload_files_in_minio(self):
         """Загрузка сконвертированных файлов в Minio"""
-        print(f'Загружаем файлы в {self._local_file_path}')
+        logger.info(f'Загружаем файлы в {self._local_file_path}')
         self.minio_service.upload_files(film_id=self.film_id, file_dir=self._local_file_path)
 
 
