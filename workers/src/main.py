@@ -12,7 +12,7 @@ broker = RabbitBroker(
     f"amqp://{settings.rabbit_user}:{settings.rabbit_password}@{settings.rabbit_host}:{settings.rabbit_port}/")
 
 app = FastStream(broker)
-queue_new_video = RabbitQueue("new_video")
+queue_new_video = RabbitQueue("new_video", durable=True)
 default_exchange = RabbitExchange("default_exchange")
 
 

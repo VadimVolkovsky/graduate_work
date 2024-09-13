@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings
 
 
@@ -9,12 +11,12 @@ class Settings(BaseSettings):
     postgres_user: str = ""
     postgres_password: str = ""
 
-    rabbit_host: str = "localhost"
+    rabbit_host: str = os.environ.get('RABBIT_HOST')
     rabbit_port: int = 5672
     rabbit_user: str = "guest"
     rabbit_password: str = "guest"
 
-    minio_host: str = 'localhost'
+    minio_host: str = os.environ.get('MINIO_HOST')
     minio_port: int = 9000
     minio_root_user: str = 'minio_user'
     minio_root_password: str = 'minio_password'
@@ -26,7 +28,7 @@ class Settings(BaseSettings):
     debug_queue_message: bool = False
 
     class Config:
-        # env_file = '.env'
+        env_file = '.env'
         extra = 'ignore'
 
 

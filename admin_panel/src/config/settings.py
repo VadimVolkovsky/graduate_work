@@ -19,7 +19,6 @@ include(
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -73,43 +72,29 @@ AUTH_PASSWORD_VALIDATORS = [
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '/data/static/')
 
 USE_MINIO = os.environ.get('USE_MINIO', False)
-
-# USE_X_FORWARDED_HOST = True
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 
 if USE_MINIO:
 
     AWS_ACCESS_KEY_ID = os.environ.get('MINIO_ROOT_USER')
     AWS_SECRET_ACCESS_KEY = os.environ.get('MINIO_ROOT_PASSWORD')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('MINIO_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = f'http://{os.environ.get('MINIO_HOST')}:{os.environ.get('MINIO_PORT')}'
+    AWS_S3_ENDPOINT_URL = f"http://{os.environ.get('MINIO_HOST')}:{os.environ.get('MINIO_PORT')}"
     AWS_S3_REGION_NAME = 'us-east-1'
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_S3_FILE_OVERWRITE = False
     AWS_S3_MAX_MEMORY_SIZE = 1024 * 1024 * 100  # 100 MB
-    AWS_S3_CUSTOM_DOMAIN = f'127.0.0.1:9000'
+    # AWS_S3_CUSTOM_DOMAIN = f'127.0.0.1:9000'
 
     # s3 media settings
 
     MEDIA_LOCATION = 'media'
     DEFAULT_FILE_STORAGE = 'storage_minio.MediaStorage'
-    MEDIA_URL = f'http://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
+    # MEDIA_URL = f'http://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
     SERVE_MEDIA = False
-
-    # AWS_ACCESS_KEY_ID = os.getenv('MINIO_ACCESS_KEY', 'your-minio-access-key')
-    # AWS_SECRET_ACCESS_KEY = os.getenv('MINIO_SECRET_KEY', 'your-minio-secret-key')
-    # AWS_STORAGE_BUCKET_NAME = os.getenv('MINIO_BUCKET_NAME', 'your-bucket-name')
-    # AWS_S3_ENDPOINT_URL = os.getenv('MINIO_ENDPOINT', 'http://localhost:9000')
-    # AWS_S3_REGION_NAME = os.getenv('MINIO_REGION_NAME', 'us-east-1')
-    # AWS_S3_SIGNATURE_VERSION = 's3v4'
-    # AWS_S3_FILE_OVERWRITE = False
-    # AWS_DEFAULT_ACL = None
-    # AWS_QUERYSTRING_AUTH = False  # Отключает добавление токенов к URL-адресам
 
 else:
     MEDIA_URL = '/media/'
@@ -119,10 +104,3 @@ else:
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-# For debug
-# INTERNAL_IPS = [
-#     "127.0.0.1",
-#     "localhost",
-# ]
