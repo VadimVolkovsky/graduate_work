@@ -1,13 +1,11 @@
-from http import HTTPStatus
-from typing import Annotated, cast
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, Path
 from schemas.film import Playlist
 from api.v1.handlers import ExceptionHandlerRoute
 
 from services.playlist import PlaylistService, get_playlist_service
 
-#from utils.auth import CheckRoles, RolesEnum
 
 
 router = APIRouter()
