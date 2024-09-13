@@ -37,19 +37,44 @@ services:
       - cdn_network
     container_name: 'cdn_worker'
 
-  minio:
+  minio-main:
     image: minio/minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    container_name: cdn_minio_main
     volumes:
-      - minio_storage:/data
+      - data_minio_main:/data
     env_file:
       - ./.env
-    command: server --console-address ":9001" /data
+    command: server --console-address ':9001' http://minio-main/data http://minio-cdn1/data http://minio-cdn2/data
+    expose:
+      - 9000
     networks:
       - cdn_network
-    container_name: 'cdn_minio'
+
+  minio-cdn1:
+    image: minio/minio
+    container_name: cdn_minio_cdn1
+    volumes:
+      - data_minio_cdn1:/data
+    env_file:
+      - ./.env
+    command: server --console-address ':9001' http://minio-main/data http://minio-cdn1/data http://minio-cdn2/data
+    expose:
+      - 9000
+    networks:
+      - cdn_network
+
+  minio-cdn2:
+    image: minio/minio
+    container_name: cdn_minio_cdn2
+    volumes:
+      - data_minio_cdn2:/data
+    env_file:
+      - ./.env
+    command: server --console-address ':9001' http://minio-main/data http://minio-cdn1/data http://minio-cdn2/data
+    expose:
+      - 9000
+    networks:
+      - cdn_network
 
   nginx-backend:
     image: nginx:1.25.3
@@ -58,8 +83,12 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/services.conf:/etc/nginx/conf.d/services.conf:ro
+      - ./nginx/GeoIP.dat:/etc/nginx/geoip/GeoIP.dat:ro
     depends_on:
-      - minio
+      - minio-main
+      - minio-cdn1
+      - minio-cdn2
       - auth-api
       - hls-api
     networks:
@@ -75,7 +104,7 @@ services:
     volumes:
       - ./frontend/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - minio
+      - minio-main
     networks:
       - cdn_network
 
@@ -107,7 +136,7 @@ services:
       - .env
     depends_on:
       - postgres
-      - minio
+      - minio-main
     networks:
       - cdn_network
     volumes:
@@ -128,7 +157,7 @@ services:
       - media_value:/data/media
     depends_on:
       - admin_panel
-      - minio
+      - minio-main
     ports:
       - "8001:80"
     networks:
@@ -150,10 +179,12 @@ services:
       - cdn_network
 
 volumes:
-  minio_storage:
   static_value:
   media_value:
   postgres_vol:
+  data_minio_main:
+  data_minio_cdn1:
+  data_minio_cdn2:
 
 networks:
   cdn_network:

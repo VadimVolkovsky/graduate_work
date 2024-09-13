@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     movie_api_project_name: str = "hls_api"
     movie_api_app_port: int = 8002
-    nginx_host: str = "localhost"
+    nginx_host: str = "127.0.0.1"
     nginx_port: int = 80
 
 
