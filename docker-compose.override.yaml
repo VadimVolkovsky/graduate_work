@@ -69,10 +69,6 @@ services:
     ports:
       - "8002:8002"
 
-  nginx:
-    ports:
-      - "8001:81"
-
   postgres:
     ports:
       - "5432:5432"

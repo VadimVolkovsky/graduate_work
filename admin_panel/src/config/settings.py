@@ -35,7 +35,8 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*0.0.0.0:8001', 'http://*0.0.0.0:8001', 'https://*127.0.0.1:8001', 'http://*127.0.0.1:8001'
+    'https://*0.0.0.0:8001', 'http://*0.0.0.0:8001', 'https://*127.0.0.1:8001', 'http://*127.0.0.1:8001',
+    "http://127.0.0.1:80",
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -73,7 +74,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, '/data/static/')
+STATIC_ROOT = os.path.join(BASE_DIR, '/static/')
 
 USE_MINIO = os.environ.get('USE_MINIO', False)
 
@@ -88,6 +89,7 @@ if USE_MINIO:
     AWS_S3_FILE_OVERWRITE = False
     AWS_S3_MAX_MEMORY_SIZE = 1024 * 1024 * 100  # 100 MB
     # AWS_S3_CUSTOM_DOMAIN = f'127.0.0.1:9000'
+    AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", default="public")
 
     # s3 media settings
 
