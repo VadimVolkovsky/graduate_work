@@ -17,6 +17,7 @@ RUN  pip install --upgrade pip && pip install -r requirements.txt -r requirement
 
 COPY ./hls_service/src .
 COPY ./cdn ./cdn
+COPY ./common_settings ./common_settings
 
 USER web
 ENTRYPOINT ["gunicorn", "main:app", "--bind", "0.0.0.0:8002", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker"]

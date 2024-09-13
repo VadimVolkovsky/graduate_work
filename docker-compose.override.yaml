@@ -35,19 +35,10 @@ services:
       - cdn_network
     container_name: 'cdn_worker'
 
-  minio:
-    image: minio/minio
+  minio-main:
     ports:
       - "9000:9000"
       - "9001:9001"
-    volumes:
-      - minio_storage:/data
-    env_file:
-      - ./.env
-    command: server --console-address ":9001" /data
-    networks:
-      - cdn_network
-    container_name: 'cdn_minio'
 
 #  pgadmin:
 #    container_name: 'cdn_pgadmin4'

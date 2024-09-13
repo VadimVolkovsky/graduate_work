@@ -46,7 +46,8 @@
                 const response = await fetch(`http://127.0.0.1:80/hls/api/v1/films/${videoId}/playlist`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        //'X-Forwarded-For': '2.16.20.1'
                     }
                 });
                 console.log(response)
@@ -98,6 +99,7 @@
                     xhrSetup: function (xhr, url) {
                         xhr.setRequestHeader('Cache-Control', 'no-cache');
                         xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+                        xhr.setRequestHeader('X-Forwarded-For', '2.16.20.1');
                     },
                 });
 
