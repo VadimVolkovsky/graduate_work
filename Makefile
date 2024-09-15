@@ -1,5 +1,7 @@
-DOCKER_COMPOSE:=docker-compose
-EXEC_CORE:=$(DOCKER_COMPOSE) exec admin_panel
+DOCKER_COMPOSE:=docker compose
+EXEC_ADMIN_PANEL:=$(DOCKER_COMPOSE) exec admin_panel
+EXEC_AUTH_API:=$(DOCKER_COMPOSE) exec auth-api
+EXEC_WORKER_APP:=$(DOCKER_COMPOSE) exec worker-app
 
 
 # work with docker
@@ -24,46 +26,62 @@ pull:
 	$(DOCKER_COMPOSE) pull
 
 
+# auth-api
+migrate_auth:
+	$(EXEC_AUTH_API) alembic upgrade head
+
+create_roles:
+	$(EXEC_AUTH_API) python src/create_roles.py
+
+create_subscriber:
+	$(EXEC_AUTH_API) python src/create_subscriber.py
+
+
+# worker
+create_bucket:
+	$(EXEC_WORKER_APP) python create_default_bucket.py
+
+
 # django utils
 createsuperuser:
-	$(EXEC_CORE) ./manage.py createsuperuser
+	$(EXEC_ADMIN_PANEL) ./manage.py createsuperuser
 
 runserver:
-	$(EXEC_CORE) ./manage.py runserver
+	$(EXEC_ADMIN_PANEL) ./manage.py runserver
 
 makemigrations:
-	$(EXEC_CORE) ./manage.py makemigrations
+	$(EXEC_ADMIN_PANEL) ./manage.py makemigrations
 
 makemigrations-merge:
-	$(EXEC_CORE) ./manage.py makemigrations --merge
+	$(EXEC_ADMIN_PANEL) ./manage.py makemigrations --merge
 
 migrate:
-	$(EXEC_CORE) ./manage.py migrate
+	$(EXEC_ADMIN_PANEL) ./manage.py migrate
 
 makemessages:
-	$(EXEC_CORE) ./manage.py makemessages
+	$(EXEC_ADMIN_PANEL) ./manage.py makemessages
 
 compilemessages:
-	$(EXEC_CORE) ./manage.py compilemessages
+	$(EXEC_ADMIN_PANEL) ./manage.py compilemessages
 
 shell:
-	$(EXEC_CORE) bash
+	$(EXEC_ADMIN_PANEL) bash
 
 
 # helpers
 
 flake8:
-	$(EXEC_CORE) flake8
+	$(EXEC_ADMIN_PANEL) flake8
 
 flake8-hook:
 	flake8 --install-hook git
 	git config --bool flake8.strict true
 
 isort:
-	$(EXEC_CORE) isort -rc backend_api
+	$(EXEC_ADMIN_PANEL) isort -rc backend_api
 
 test:
-	$(EXEC_CORE) ./run_tests.sh
+	$(EXEC_ADMIN_PANEL) ./run_tests.sh
 
 upgrade-requirements:
 	$(DOCKER_COMPOSE) run core \

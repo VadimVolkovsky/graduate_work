@@ -6,14 +6,11 @@ services:
 
   auth_postgres:
     ports:
-      - "5434:5432"
+      - "5432:5432"
 
   auth_redis:
     ports:
       - "6379:6379"
-
-#  auth_nginx:
-#    entrypoint: [ "echo", "Service nginx disabled in dev mode" ]
 
 
 volumes:
@@ -21,5 +18,5 @@ volumes:
   redis_data:
 
 networks:
-  auth_network:
+  cdn_network:
     driver: bridge
