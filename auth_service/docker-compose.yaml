@@ -57,3 +57,6 @@ volumes:
   postgres_data_auth:
   redis_data:
 
+networks:
+  cdn_network:
+    driver: bridge
